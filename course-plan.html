@@ -42,7 +42,23 @@
     gap: 16px; flex-wrap: wrap; margin-bottom: 6px;
   }
   h1 { font-size: 22px; margin: 0; font-weight: 600; }
-  .subtitle { color: var(--muted); font-size: 13px; }
+  .subtitle {
+    color: var(--muted); font-size: 13px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .sub-pill {
+    display: inline-flex; align-items: center;
+    background: rgba(255,138,61,0.15);
+    color: #ffd0af;
+    border: 1px solid rgba(255,138,61,0.5);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .sub-muted { color: var(--muted); font-size: 12px; }
   .toolbar {
     display: flex; gap: 8px; flex-wrap: wrap;
     margin: 14px 0 18px;
@@ -339,7 +355,10 @@
   <header class="top">
     <div>
       <h1>Course Planner — drag to plan</h1>
-      <div class="subtitle">Drop classes into the term where you'll take them. Double-click a placed class to send it back to the bank. Optional: place <b style="color: #ffd0af;">PHYS 010 (Intro Physics III)</b> to replace both ENGR 156 + EE 060.</div>
+      <div class="subtitle">
+        <span class="sub-pill">PHYS 010 → replaces ENGR 156 + EE 060</span>
+        <span class="sub-muted">· drag to a term · double-click to send back</span>
+      </div>
     </div>
     <a class="nav-btn" href="timeline.html">← Back to Timeline</a>
   </header>
