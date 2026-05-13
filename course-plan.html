@@ -313,10 +313,10 @@
     min-height: 16px;
   }
 
-  /* Status bar at very bottom */
+  /* Status bar — sits inside the bank, above the chip slot */
   .status {
-    margin-top: 18px;
-    padding: 12px 14px;
+    margin: 0 0 12px;
+    padding: 10px 14px;
     border-radius: 10px;
     background: var(--panel-2);
     border: 1px solid var(--border);
@@ -355,8 +355,6 @@
 
   <div class="terms" id="terms"></div>
 
-  <div class="status" id="status"></div>
-
   <div class="bank" id="bank-card">
     <div class="bank-head">
       <div>
@@ -369,6 +367,7 @@
         <button class="btn bank-btn plan-c-btn" id="bank-planC-btn">⤴ Plan C (PHYS 010)</button>
       </div>
     </div>
+    <div class="status" id="status"></div>
     <div class="bank-slot" id="bank-slot"></div>
   </div>
 
