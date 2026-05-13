@@ -234,14 +234,6 @@
   }
   .bank-title { font-size: 14px; font-weight: 700; }
   .bank-sub { font-size: 11.5px; color: var(--muted); }
-  .bank-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .bank-btn { font-size: 12px; }
-  .plan-a-btn { background: rgba(179,136,255,0.16); border-color: rgba(179,136,255,0.5); color: #d2b8ff; }
-  .plan-a-btn:hover { background: rgba(179,136,255,0.28); }
-  .plan-b-btn { background: rgba(33,195,155,0.16); border-color: rgba(33,195,155,0.5); color: #6fe5c2; }
-  .plan-b-btn:hover { background: rgba(33,195,155,0.28); }
-  .plan-c-btn { background: rgba(255,138,61,0.18); border-color: rgba(255,138,61,0.55); color: #ffd0af; }
-  .plan-c-btn:hover { background: rgba(255,138,61,0.32); }
   .bank-slot {
     display: flex; flex-wrap: wrap; gap: 8px;
     min-height: 60px;
@@ -329,18 +321,32 @@
     min-height: 16px;
   }
 
-  /* Status bar — sits inside the bank, above the chip slot */
-  .status {
-    margin: 0 0 12px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    font-size: 13px;
+  /* Header-right area + compact status pill */
+  .header-right {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    justify-content: flex-end;
   }
-  .status.good { border-color: rgba(33,195,155,0.5); background: rgba(33,195,155,0.08); }
-  .status.bad { border-color: rgba(255,93,108,0.4); background: rgba(255,93,108,0.06); }
-  .status b { color: #fff; }
+  .status-pill {
+    display: inline-flex; align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    border: 1px solid;
+    max-width: 460px;
+    line-height: 1.25;
+  }
+  .status-pill.good {
+    color: #6fe5c2;
+    background: rgba(33,195,155,0.12);
+    border-color: rgba(33,195,155,0.55);
+  }
+  .status-pill.bad {
+    color: #ff8a8d;
+    background: rgba(255,93,108,0.10);
+    border-color: rgba(255,93,108,0.5);
+  }
 
   @media (max-width: 1100px) {
     .terms { grid-template-columns: repeat(2, 1fr); }
@@ -360,13 +366,13 @@
         <span class="sub-muted">· drag to a term · double-click to send back</span>
       </div>
     </div>
-    <a class="nav-btn" href="timeline.html">← Back to Timeline</a>
+    <div class="header-right">
+      <span class="status-pill" id="status-pill"></span>
+      <a class="nav-btn" href="timeline.html">← Back to Timeline</a>
+    </div>
   </header>
 
   <div class="toolbar">
-    <button class="btn primary" id="reset-btn">↺ Plan A (Econ in Summer 2027)</button>
-    <button class="btn" id="planB-btn">Plan B (Econ this summer)</button>
-    <button class="btn plan-c-btn" id="planC-btn">Plan C (PHYS 010 instead of TW+Bool)</button>
     <button class="btn" id="clear-btn">Clear all → bank</button>
     <button class="btn" id="erase-save-btn" title="Erase saved state from this browser">🗑 Forget save</button>
     <span class="save-indicator" id="save-indicator" title="Saved to this browser's local storage">💾 Saved</span>
@@ -378,15 +384,9 @@
     <div class="bank-head">
       <div>
         <div class="bank-title">Bank — unplaced classes</div>
-        <div class="bank-sub">Drag any of these into a term column above, or autofill a scenario.</div>
-      </div>
-      <div class="bank-actions">
-        <button class="btn bank-btn plan-a-btn" id="bank-planA-btn">⤴ Plan A</button>
-        <button class="btn bank-btn plan-b-btn" id="bank-planB-btn">⤴ Plan B</button>
-        <button class="btn bank-btn plan-c-btn" id="bank-planC-btn">⤴ Plan C (PHYS 010)</button>
+        <div class="bank-sub">Drag any of these into a term column above.</div>
       </div>
     </div>
-    <div class="status" id="status"></div>
     <div class="bank-slot" id="bank-slot"></div>
   </div>
 
@@ -437,26 +437,16 @@ const REQUIREMENTS = [
   { key: "boolean", label: "EE 060 (Boolean Algebra)", need: 1 }
 ];
 
-// Current enrollment defaults
-const PLAN_A_PLACEMENT = {
-  sum26: ["phys9"],
-  fall26: ["cs1"],
-  spr27: ["cs2", "cs3", "techwr"],
-  sum27: ["econ", "bool"]
-};
-const PLAN_B_PLACEMENT = {
-  sum26: ["phys9", "econ"],
-  fall26: ["cs1"],
-  spr27: ["cs2", "cs3", "techwr"],
-  sum27: ["bool"]
-};
-// Plan C: PHYS 010 replaces both Tech Writing + Boolean (one class instead of two)
-const PLAN_C_PLACEMENT = {
-  sum26: ["phys9", "econ"],
-  fall26: ["cs1"],
-  spr27: ["cs2", "cs3", "phys10"],
-  sum27: []
-};
+// Default placement: pinned classes (PHYS 009 + ENGR 155) snap into Summer 2026,
+// everything else starts in the bank.
+function defaultPlacement() {
+  const out = {};
+  TERMS.forEach(t => out[t.id] = []);
+  COURSES.forEach(c => {
+    if (c.pinned) out[c.pinned] = (out[c.pinned] || []).concat(c.id);
+  });
+  return out;
+}
 
 // ---- State ----
 // location of each course id: term id or "bank"
@@ -741,38 +731,35 @@ function renderBank() {
 }
 
 function renderStatus() {
-  const box = document.getElementById("status");
-  box.textContent = "";
+  const pill = document.getElementById("status-pill");
+  if (!pill) return;
+  pill.textContent = "";
+
   const missing = [];
   REQUIREMENTS.forEach(r => {
     const placed = reqCount(r.key);
-    if (placed < r.need) missing.push(`${r.need - placed} more ${r.label}`);
-    if (placed > r.need) missing.push(`${placed - r.need} extra ${r.label}`);
+    if (placed < r.need) missing.push(`${r.need - placed} ${r.label}`);
+    if (placed > r.need) missing.push(`-${placed - r.need} ${r.label}`);
   });
-  // Filter out classes that are intentionally unused due to the substitution.
-  // If PHYS 010 is placed, Tech Writing + Boolean are no longer needed.
-  // If PHYS 010 is in bank, it's the optional substitute — also not "needed."
   const subActive = isSubstitutionActive();
   const banked = COURSES.filter(c => {
     if (placement[c.id] !== "bank") return false;
-    if (c.substitute) return false; // Physics 8 in bank = optional, not a gap
+    if (c.substitute) return false;
     if (subActive && (c.id === "techwr" || c.id === "bool")) return false;
     return true;
   });
 
   if (missing.length === 0 && banked.length === 0) {
-    box.className = "status good";
-    const b = el("b", null, "✓ Plan complete — ");
-    box.appendChild(b);
-    box.appendChild(document.createTextNode("all requirements placed across the timeline."));
+    pill.className = "status-pill good";
+    pill.textContent = "✓ Plan complete";
+    pill.title = "All requirements placed across the timeline.";
   } else {
-    box.className = "status bad";
+    pill.className = "status-pill bad";
     const parts = [];
-    if (banked.length) parts.push(`${banked.length} class${banked.length === 1 ? "" : "es"} still in bank`);
-    if (missing.length) parts.push(missing.join(", "));
-    const b = el("b", null, "⚠ Incomplete — ");
-    box.appendChild(b);
-    box.appendChild(document.createTextNode(parts.join("; ") + "."));
+    if (banked.length) parts.push(`${banked.length} in bank`);
+    if (missing.length) parts.push(`need ${missing.join(", ")}`);
+    pill.textContent = `⚠ ${parts.join(" · ")}`;
+    pill.title = parts.join("; ");
   }
 }
 
@@ -794,33 +781,22 @@ function render() {
 }
 
 // ---- Wire toolbar ----
-document.getElementById("reset-btn").addEventListener("click", () => loadPlan(PLAN_A_PLACEMENT));
-document.getElementById("planB-btn").addEventListener("click", () => loadPlan(PLAN_B_PLACEMENT));
-document.getElementById("planC-btn").addEventListener("click", () => loadPlan(PLAN_C_PLACEMENT));
-document.getElementById("bank-planA-btn").addEventListener("click", () => loadPlan(PLAN_A_PLACEMENT));
-document.getElementById("bank-planB-btn").addEventListener("click", () => loadPlan(PLAN_B_PLACEMENT));
-document.getElementById("bank-planC-btn").addEventListener("click", () => loadPlan(PLAN_C_PLACEMENT));
 document.getElementById("erase-save-btn").addEventListener("click", () => {
-  if (!confirm("Erase the saved plan from this browser and reload the default Plan A?")) return;
+  if (!confirm("Erase the saved plan from this browser and reset to defaults?")) return;
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-  loadPlan(PLAN_A_PLACEMENT);
+  loadPlan(defaultPlacement());
 });
 document.getElementById("clear-btn").addEventListener("click", () => {
-  // Clear sends everything to the bank EXCEPT pinned courses, which stay where they are.
-  const next = {};
-  TERMS.forEach(t => next[t.id] = []);
-  COURSES.forEach(c => {
-    if (c.pinned) next[c.pinned] = (next[c.pinned] || []).concat(c.id);
-  });
-  loadPlan(next);
+  // Same as default — pinned classes stay put, everything else goes to bank.
+  loadPlan(defaultPlacement());
 });
 
-// Initial state: restore previously saved plan if present, otherwise Plan A.
+// Initial state: restore previously saved plan if present, otherwise default placement.
 if (restorePlacement()) {
   render();
   updateSaveIndicator();
 } else {
-  loadPlan(PLAN_A_PLACEMENT);
+  loadPlan(defaultPlacement());
 }
 </script>
 </body>
