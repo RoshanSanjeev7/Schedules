@@ -138,7 +138,7 @@
   }
   .req { flex-wrap: wrap; }
 
-  /* Course chip "substituted out" — Tech Writing & Boolean when Physics 8 is placed */
+  /* Course chip "substituted out" — Tech Writing & Boolean when ENGR 065 is placed */
   .course.dimmed {
     opacity: 0.45;
     text-decoration: line-through;
@@ -362,7 +362,7 @@
     <div>
       <h1>Course Planner — drag to plan</h1>
       <div class="subtitle">
-        <span class="sub-pill">PHYS 010 → replaces ENGR 156 + EE 060</span>
+        <span class="sub-pill">ENGR 065 → replaces ENGR 156 + EE 060</span>
         <span class="sub-muted">· drag to a term · double-click to send back</span>
       </div>
     </div>
@@ -403,8 +403,8 @@ const COURSES = [
   { id: "cs3",     name: "CS class #3",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
   { id: "techwr",  name: "ENGR 156 — Technical Writing",     cat: "Eng (Spr/Sum 27)", cls: "eng",     reqKey: "eng", allowedTerms: ["spr27", "sum27"] },
   { id: "econ",    name: "ENGR 155 — Econ Analysis",         cat: "Eng (flex)",       cls: "eng",     reqKey: "eng", blockedTerms: ["fall26"], pinned: "sum26" },
-  // Substitution option: PHYS 010 (Intro Physics III) replaces BOTH Tech Writing AND Boolean Algebra
-  { id: "phys10",  name: "PHYS 010 — Intro Physics III",     cat: "Sub: TW+Bool",     cls: "physics", reqKey: "sub", allowedTerms: ["spr27", "sum27"], substitute: true }
+  // Substitution option: ENGR 065 (Circuit Theory) replaces BOTH Tech Writing AND Boolean Algebra
+  { id: "engr065", name: "ENGR 065 — Circuit Theory",        cat: "Sub: TW+Bool",     cls: "eng",     reqKey: "sub", allowedTerms: ["spr27", "sum27"], substitute: true }
 ];
 
 // Terms — order matters
@@ -564,10 +564,10 @@ function buildCourse(course, displayName, note, tier) {
     pin.title = "Pinned — stays here on Clear, but still draggable";
     node.appendChild(pin);
   }
-  // Dim Tech Writing / Boolean when PHYS 010 substitution is active
+  // Dim Tech Writing / Boolean when ENGR 065 substitution is active
   if (isSubstitutionActive() && (course.id === "techwr" || course.id === "bool")) {
     node.classList.add("dimmed");
-    node.title = "Replaced by PHYS 010 (Intro Physics III)";
+    node.title = "Replaced by ENGR 065 (Circuit Theory)";
   }
   // Wrap name + (optional) workload tag in a column so the tag sits under the name.
   const main = el("div", "course-main");
@@ -654,7 +654,7 @@ function reqCount(key) {
     c.reqKey === key && placement[c.id] && placement[c.id] !== "bank"
   ).length;
   if (!subActive) return placed;
-  // PHYS 010 substitutes for: Boolean (1) AND one Engineering slot (1)
+  // ENGR 065 substitutes for: Boolean (1) AND one Engineering slot (1)
   if (key === "boolean") return placed + 1;
   if (key === "eng") return placed + 1;
   return placed;
@@ -671,9 +671,9 @@ function renderRequirements() {
     node.appendChild(el("div", "req-name", r.label));
     const countBadge = el("div", `req-count ${status}`, `${placed} / ${r.need}`);
     node.appendChild(countBadge);
-    // Annotation when Physics 8 is filling a slot
+    // Annotation when ENGR 065 is filling a slot
     if (subActive && (r.key === "boolean" || r.key === "eng")) {
-      const tag = el("div", "req-sub-tag", "via PHYS 010");
+      const tag = el("div", "req-sub-tag", "via ENGR 065");
       node.appendChild(tag);
     }
     box.appendChild(node);
