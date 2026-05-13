@@ -265,10 +265,37 @@
     min-width: 0; flex: 1;
   }
   .course-note {
-    font-size: 10.5px;
-    font-weight: 600;
-    opacity: 0.75;
-    letter-spacing: 0.2px;
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid;
+    margin-top: 2px;
+  }
+  /* Workload-tag color variants, applied based on text content */
+  .course-note.tag-easy {
+    background: rgba(33,195,155,0.18);
+    border-color: rgba(33,195,155,0.55);
+    color: #6fe5c2;
+  }
+  .course-note.tag-medium-easy {
+    background: rgba(167,205,87,0.18);
+    border-color: rgba(167,205,87,0.55);
+    color: #d4e6a3;
+  }
+  .course-note.tag-medium {
+    background: rgba(255,209,102,0.18);
+    border-color: rgba(255,209,102,0.55);
+    color: #ffd166;
+  }
+  .course-note.tag-hard {
+    background: rgba(255,93,108,0.18);
+    border-color: rgba(255,93,108,0.55);
+    color: #ff8a8d;
   }
   .course.cs { background: rgba(79,140,255,0.16); border-color: var(--cs); color: #cfdfff; }
   .course.eng { background: rgba(33,195,155,0.16); border-color: var(--eng); color: #b6f0dc; }
@@ -503,16 +530,15 @@ function el(tag, className, text) {
 // Fall 2026 CS slots — displayed in placement order.
 // `note` shows under the class name as a small workload/difficulty hint.
 const FALL26_CS_META = [
-  { name: "Intro to Digital Image Processing", note: "Easiest · least time" },
-  { name: "Database Systems",                  note: "Medium-easy · test-heavy" },
-  { name: "Mobile Computing",                  note: "Medium · possible pop quizzes" }
+  { name: "Intro to Digital Image Processing", note: "Easiest · least time",          tier: "easy"        },
+  { name: "Database Systems",                  note: "Medium-easy · test-heavy",      tier: "medium-easy" },
+  { name: "Mobile Computing",                  note: "Medium · possible pop quizzes", tier: "medium"      }
 ];
 const FALL26_CS_NAMES = FALL26_CS_META.map(m => m.name);
 
 function computeDisplayMeta() {
   const meta = {};
-  COURSES.forEach(c => meta[c.id] = { name: c.name, note: "" });
-  // Fall 2026 CS overrides — assign names in the order CS classes appear in cs1, cs2, cs3
+  COURSES.forEach(c => meta[c.id] = { name: c.name, note: "", tier: "" });
   const fallCS = COURSES
     .filter(c => c.reqKey === "cs" && placement[c.id] === "fall26");
   fallCS.forEach((c, i) => {
@@ -521,7 +547,7 @@ function computeDisplayMeta() {
   return meta;
 }
 
-function buildCourse(course, displayName, note) {
+function buildCourse(course, displayName, note, tier) {
   const node = el("div", `course ${course.cls}`);
   node.draggable = true;
   node.dataset.courseId = course.id;
@@ -535,10 +561,13 @@ function buildCourse(course, displayName, note) {
     node.classList.add("dimmed");
     node.title = "Replaced by PHYS 010 (Intro Physics III)";
   }
-  // Wrap name + (optional) note in a column so the note sits under the name.
+  // Wrap name + (optional) workload tag in a column so the tag sits under the name.
   const main = el("div", "course-main");
   main.appendChild(el("span", "name", displayName || course.name));
-  if (note) main.appendChild(el("span", "course-note", note));
+  if (note) {
+    const tag = el("span", `course-note tag-${tier || "medium"}`, note);
+    main.appendChild(tag);
+  }
   node.appendChild(main);
   node.appendChild(el("span", "cat", course.cat));
 
@@ -664,7 +693,7 @@ function renderTerms() {
     const slot = el("div", "slot");
     const placedHere = COURSES.filter(c => placement[c.id] === term.id);
     if (placedHere.length === 0) slot.classList.add("empty-hint");
-    placedHere.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note)));
+    placedHere.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note, meta[c.id].tier)));
     card.appendChild(slot);
 
     const hasIntern = term.work.some(w => w.cls === "work-ebay" || w.cls === "work-ibm");
@@ -689,7 +718,7 @@ function renderBank() {
   if (inBank.length === 0) slot.classList.add("empty-hint");
   else slot.classList.remove("empty-hint");
   const meta = computeDisplayMeta();
-  inBank.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note)));
+  inBank.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note, meta[c.id].tier)));
   attachDropHandlers(bankCard, "bank");
 }
 
