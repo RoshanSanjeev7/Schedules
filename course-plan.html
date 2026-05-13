@@ -339,7 +339,7 @@
   <header class="top">
     <div>
       <h1>Course Planner — drag to plan</h1>
-      <div class="subtitle">Drop classes into the term where you'll take them. Double-click a placed class to send it back to the bank. Optional: place <b style="color: #ffd0af;">PHYS 010 (Intro Physics III)</b> to replace both ENGR 156 + CSE 015.</div>
+      <div class="subtitle">Drop classes into the term where you'll take them. Double-click a placed class to send it back to the bank. Optional: place <b style="color: #ffd0af;">PHYS 010 (Intro Physics III)</b> to replace both ENGR 156 + EE 060.</div>
     </div>
     <a class="nav-btn" href="timeline.html">← Back to Timeline</a>
   </header>
@@ -378,7 +378,7 @@
 // ---- Data ----
 const COURSES = [
   { id: "phys9",   name: "PHYS 009 — Intro Physics II",      cat: "Physics",          cls: "physics", reqKey: "physics", pinned: "sum26" },
-  { id: "bool",    name: "CSE 015 — Discrete Math",          cat: "Boolean (Spr/Sum 27)", cls: "boolean", reqKey: "boolean", allowedTerms: ["spr27", "sum27"] },
+  { id: "bool",    name: "EE 060 — Boolean Algebra",         cat: "Boolean (Spr/Sum 27)", cls: "boolean", reqKey: "boolean", allowedTerms: ["spr27", "sum27"] },
   { id: "cs1",     name: "CS class #1",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
   { id: "cs2",     name: "CS class #2",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
   { id: "cs3",     name: "CS class #3",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
@@ -415,7 +415,7 @@ const REQUIREMENTS = [
   { key: "cs",      label: "CS classes",       need: 3 },
   { key: "eng",     label: "Engineering",      need: 2 },
   { key: "physics", label: "PHYS 009",         need: 1 },
-  { key: "boolean", label: "CSE 015 (Discrete Math)", need: 1 }
+  { key: "boolean", label: "EE 060 (Boolean Algebra)", need: 1 }
 ];
 
 // Current enrollment defaults
