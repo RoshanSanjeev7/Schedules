@@ -257,8 +257,19 @@
   .course .cat {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.5px; opacity: 0.8;
+    flex-shrink: 0;
   }
   .course .name { white-space: nowrap; }
+  .course-main {
+    display: flex; flex-direction: column; gap: 2px;
+    min-width: 0; flex: 1;
+  }
+  .course-note {
+    font-size: 10.5px;
+    font-weight: 600;
+    opacity: 0.75;
+    letter-spacing: 0.2px;
+  }
   .course.cs { background: rgba(79,140,255,0.16); border-color: var(--cs); color: #cfdfff; }
   .course.eng { background: rgba(33,195,155,0.16); border-color: var(--eng); color: #b6f0dc; }
   .course.physics { background: rgba(255,138,61,0.18); border-color: var(--physics); color: #ffd0af; }
@@ -489,26 +500,28 @@ function el(tag, className, text) {
 }
 
 // CS classes get specific names when assigned to Fall 2026, in placement order
-const FALL26_CS_NAMES = [
-  "Intro to Digital Image Processing",
-  "Database Systems",
-  "Mobile Computing"
+// Fall 2026 CS slots — displayed in placement order.
+// `note` shows under the class name as a small workload/difficulty hint.
+const FALL26_CS_META = [
+  { name: "Intro to Digital Image Processing", note: "Easiest · least time" },
+  { name: "Database Systems",                  note: "Medium-easy · test-heavy" },
+  { name: "Mobile Computing",                  note: "Medium · possible pop quizzes" }
 ];
+const FALL26_CS_NAMES = FALL26_CS_META.map(m => m.name);
 
-function computeDisplayNames() {
-  const names = {};
-  // Default: each course's own name
-  COURSES.forEach(c => names[c.id] = c.name);
+function computeDisplayMeta() {
+  const meta = {};
+  COURSES.forEach(c => meta[c.id] = { name: c.name, note: "" });
   // Fall 2026 CS overrides — assign names in the order CS classes appear in cs1, cs2, cs3
   const fallCS = COURSES
     .filter(c => c.reqKey === "cs" && placement[c.id] === "fall26");
   fallCS.forEach((c, i) => {
-    if (i < FALL26_CS_NAMES.length) names[c.id] = FALL26_CS_NAMES[i];
+    if (i < FALL26_CS_META.length) meta[c.id] = { ...FALL26_CS_META[i] };
   });
-  return names;
+  return meta;
 }
 
-function buildCourse(course, displayName) {
+function buildCourse(course, displayName, note) {
   const node = el("div", `course ${course.cls}`);
   node.draggable = true;
   node.dataset.courseId = course.id;
@@ -522,7 +535,11 @@ function buildCourse(course, displayName) {
     node.classList.add("dimmed");
     node.title = "Replaced by PHYS 010 (Intro Physics III)";
   }
-  node.appendChild(el("span", "name", displayName || course.name));
+  // Wrap name + (optional) note in a column so the note sits under the name.
+  const main = el("div", "course-main");
+  main.appendChild(el("span", "name", displayName || course.name));
+  if (note) main.appendChild(el("span", "course-note", note));
+  node.appendChild(main);
   node.appendChild(el("span", "cat", course.cat));
 
   node.addEventListener("dblclick", () => {
@@ -629,7 +646,7 @@ function renderRequirements() {
 function renderTerms() {
   const wrap = document.getElementById("terms");
   wrap.textContent = "";
-  const names = computeDisplayNames();
+  const meta = computeDisplayMeta();
 
   TERMS.forEach(term => {
     const card = el("div", "term");
@@ -647,7 +664,7 @@ function renderTerms() {
     const slot = el("div", "slot");
     const placedHere = COURSES.filter(c => placement[c.id] === term.id);
     if (placedHere.length === 0) slot.classList.add("empty-hint");
-    placedHere.forEach(c => slot.appendChild(buildCourse(c, names[c.id])));
+    placedHere.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note)));
     card.appendChild(slot);
 
     const hasIntern = term.work.some(w => w.cls === "work-ebay" || w.cls === "work-ibm");
@@ -671,8 +688,8 @@ function renderBank() {
   const inBank = COURSES.filter(c => placement[c.id] === "bank");
   if (inBank.length === 0) slot.classList.add("empty-hint");
   else slot.classList.remove("empty-hint");
-  const names = computeDisplayNames();
-  inBank.forEach(c => slot.appendChild(buildCourse(c, names[c.id])));
+  const meta = computeDisplayMeta();
+  inBank.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note)));
   attachDropHandlers(bankCard, "bank");
 }
 
