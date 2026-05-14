@@ -205,18 +205,6 @@
   }
   .slot:has(.course) { border-style: solid; }
 
-  .term-load {
-    margin-top: 10px; padding-top: 8px;
-    border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 11px;
-  }
-  .load-label { color: var(--muted); }
-  .load-value { font-weight: 700; }
-  .load-value.heavy { color: #ff8a8d; }
-  .load-value.medium { color: #ffd166; }
-  .load-value.light { color: #6fe5c2; }
-  .load-value.free { color: var(--muted); }
 
   /* Bank */
   .bank {
@@ -635,14 +623,6 @@ function attachDropHandlers(dropTarget, termId) {
 }
 
 // ---- Rendering ----
-function termLoad(courseCount, hasIntern) {
-  if (courseCount === 0) return { label: "Free", cls: "free" };
-  const score = courseCount + (hasIntern ? 1.5 : 0);
-  if (score >= 3.5) return { label: "Heavy", cls: "heavy" };
-  if (score >= 2.5) return { label: "Medium", cls: "medium" };
-  return { label: "Light", cls: "light" };
-}
-
 function isSubstitutionActive() {
   const sub = COURSES.find(c => c.substitute);
   return sub && placement[sub.id] && placement[sub.id] !== "bank";
@@ -703,14 +683,6 @@ function renderTerms() {
     if (placedHere.length === 0) slot.classList.add("empty-hint");
     placedHere.forEach(c => slot.appendChild(buildCourse(c, meta[c.id].name, meta[c.id].note, meta[c.id].tier)));
     card.appendChild(slot);
-
-    const hasIntern = term.work.some(w => w.cls === "work-ebay" || w.cls === "work-ibm");
-    const load = termLoad(placedHere.length, hasIntern);
-    const loadRow = el("div", "term-load");
-    loadRow.appendChild(el("span", "load-label", "Load"));
-    loadRow.appendChild(el("span", `load-value ${load.cls}`,
-      `${load.label} · ${placedHere.length} class${placedHere.length === 1 ? "" : "es"}`));
-    card.appendChild(loadRow);
 
     attachDropHandlers(card, term.id);
     wrap.appendChild(card);
