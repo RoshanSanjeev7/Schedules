@@ -96,7 +96,8 @@
     padding: 16px 8px 8px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
   }
-  svg { display: block; width: 100%; height: auto; }
+  svg { display: block; max-width: 100%; height: auto; }
+  .chart-wrap { overflow-x: auto; }
   .row-label {
     fill: var(--text);
     font-size: 13px;
@@ -286,7 +287,9 @@ function render() {
 
   const containerWidth = document.querySelector(".chart-wrap").clientWidth - 16;
   const width = Math.max(containerWidth, 1500);
-  svg.attr("viewBox", `0 0 ${width} ${totalHeight}`);
+  svg.attr("viewBox", `0 0 ${width} ${totalHeight}`)
+     .attr("width", width)
+     .attr("height", totalHeight);
 
   const x = d3.scaleTime()
     .domain([rangeStart, rangeEnd])
