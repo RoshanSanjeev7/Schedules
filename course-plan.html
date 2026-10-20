@@ -138,13 +138,6 @@
   }
   .req { flex-wrap: wrap; }
 
-  /* Course chip "substituted out" — Tech Writing & Boolean when ENGR 065 is placed */
-  .course.dimmed {
-    opacity: 0.45;
-    text-decoration: line-through;
-    filter: grayscale(0.4);
-  }
-
   /* Term columns */
   .terms {
     display: grid;
@@ -288,6 +281,13 @@
     border-color: rgba(255,209,102,0.55);
     color: #ffd166;
   }
+  .course-note.tag-time {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.22);
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: 0.1px;
+  }
   .course-note.tag-hard {
     background: rgba(255,93,108,0.18);
     border-color: rgba(255,93,108,0.55);
@@ -298,6 +298,75 @@
   .course.physics { background: rgba(255,138,61,0.18); border-color: var(--physics); color: #ffd0af; }
   .course.boolean { background: rgba(255,77,109,0.18); border-color: var(--boolean); color: #ffc1cc; }
   .course.other { background: rgba(179,136,255,0.16); border-color: var(--other); color: #d5beff; }
+  .course.flex { background: rgba(179,136,255,0.16); border-color: var(--other); color: #d5beff; }
+  .course.flex.undecided { border-style: dashed; }
+  .course.fixed { cursor: default; }
+
+  /* Option pills inside the 3-unit class chip */
+  .flex-opts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .flex-opt {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.2px;
+    padding: 2px 7px; border-radius: 999px;
+    border: 1px solid rgba(179,136,255,0.45);
+    background: rgba(179,136,255,0.08);
+    color: #d5beff;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .flex-opt:hover { background: rgba(179,136,255,0.22); }
+  .flex-opt.on { background: var(--other); border-color: var(--other); color: #1a1230; }
+  .flex-opt.off { opacity: 0.4; }
+
+  /* Options panel for the 3-unit class */
+  .options-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    margin-top: 16px;
+  }
+  .options-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .options-title { font-size: 14px; font-weight: 700; }
+  .options-sub { font-size: 11.5px; color: var(--muted); }
+  .options-where {
+    font-size: 11.5px; font-weight: 700;
+    padding: 3px 9px; border-radius: 999px; border: 1px solid;
+  }
+  .options-where.placed { color: var(--good); border-color: rgba(33,195,155,0.5); background: rgba(33,195,155,0.12); }
+  .options-where.unplaced { color: var(--warn); border-color: rgba(255,209,102,0.5); background: rgba(255,209,102,0.12); }
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .option {
+    text-align: left;
+    font: inherit;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color 100ms, background 100ms;
+  }
+  .option:hover { border-color: var(--other); }
+  .option.on { border-color: var(--other); background: rgba(179,136,255,0.14); box-shadow: 0 0 0 1px var(--other) inset; }
+  .option-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .option-code { font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: #d5beff; text-transform: uppercase; }
+  .option-units {
+    font-size: 10.5px; font-weight: 700; color: var(--muted);
+    border: 1px solid var(--border-strong); border-radius: 999px; padding: 1px 7px;
+  }
+  .option-name { font-size: 14px; font-weight: 600; }
+  .option-times { font-size: 12px; color: var(--text); opacity: 0.85; }
+  .option-fit { font-size: 11px; color: var(--good); font-weight: 600; }
+  .option-pick { font-size: 11px; color: var(--muted); }
+  .option.on .option-pick { color: #d5beff; font-weight: 700; }
   .course.locked { cursor: not-allowed; opacity: 0.85; outline: 2px solid rgba(255,255,255,0.12); }
   .course.locked::after { content: "🔒"; font-size: 11px; margin-left: 4px; }
   .course .pin { font-size: 11px; opacity: 0.9; }
@@ -341,6 +410,7 @@
   }
   @media (max-width: 600px) {
     .terms { grid-template-columns: 1fr; }
+    .options-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -350,7 +420,7 @@
     <div>
       <h1>Course Planner — drag to plan</h1>
       <div class="subtitle">
-        <span class="sub-pill">ENGR 065 → replaces ENGR 156 + EE 060</span>
+        <span class="sub-pill">Left to take: PHYS 009 · EE 060 · one 3-unit class</span>
         <span class="sub-muted">· drag to a term · double-click to send back</span>
       </div>
     </div>
@@ -378,21 +448,46 @@
     <div class="bank-slot" id="bank-slot"></div>
   </div>
 
+  <div class="options-card" id="options-card">
+    <div class="options-head">
+      <div>
+        <div class="options-title">Your 3-unit class — options</div>
+        <div class="options-sub">Any one of these fills the slot. Click one to choose it; click it again to undo.</div>
+      </div>
+      <span class="options-where" id="options-where"></span>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+
   <div class="reqs" id="reqs"></div>
 </div>
 
 <script>
 // ---- Data ----
+// Classes already taken / in progress — always filled into their term, not draggable,
+// and not counted toward what's left.
+// Only three classes are left to take: PHYS 009, EE 060, and one 3-unit class.
 const COURSES = [
-  { id: "phys9",   name: "PHYS 009 — Intro Physics II",      cat: "Physics",          cls: "physics", reqKey: "physics" },
-  { id: "bool",    name: "EE 060 — Boolean Algebra",         cat: "Boolean",          cls: "boolean", reqKey: "boolean" },
-  { id: "cs1",     name: "CS class #1",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
-  { id: "cs2",     name: "CS class #2",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
-  { id: "cs3",     name: "CS class #3",                      cat: "CS",               cls: "cs",      reqKey: "cs", summerOk: false },
-  { id: "techwr",  name: "ENGR 156 — Technical Writing",     cat: "Eng (Spr/Sum 27)", cls: "eng",     reqKey: "eng", allowedTerms: ["spr27", "sum27"] },
-  { id: "econ",    name: "ENGR 155 — Econ Analysis",         cat: "Engineering",      cls: "eng",     reqKey: "eng" },
-  // Substitution option: ENGR 065 (Circuit Theory) replaces BOTH Tech Writing AND Boolean Algebra
-  { id: "engr065", name: "ENGR 065 — Circuit Theory",        cat: "Sub: TW+Bool",     cls: "eng",     reqKey: "sub", allowedTerms: ["spr27", "sum27"], substitute: true }
+  { id: "econ",   name: "ENGR 155 — Econ Analysis",           cat: "Engineering", cls: "eng", fixed: "sum26" },
+  { id: "cse107", name: "CSE 107 — Digital Image Processing", cat: "CS",          cls: "cs",  fixed: "fall26",
+    note: "Easiest · least time · lab schedule may conflict", tier: "easy" },
+  { id: "cse162", name: "CSE 162 — Mobile Computing",         cat: "CS",          cls: "cs",  fixed: "fall26",
+    note: "Medium · might fit schedule better", tier: "medium" },
+  // Meeting times from the Spring 2027 class schedule.
+  // PHYS 009 section 01 is the only lecture section that doesn't overlap EE 060.
+  { id: "phys9", name: "PHYS 009 — Intro Physics II",     cat: "Physics", cls: "physics", reqKey: "physics",
+    note: "Sec 01 (CRN 10603) · MW 1:30–2:45 · Th 3:00–6:00 · + Fri section", tier: "time" },
+  { id: "bool",  name: "EE 060 — Digital Systems Design", cat: "EE",      cls: "boolean", reqKey: "boolean",
+    note: "CRN 11089 · TuTh 12:00–1:15 · Th 8:00–11:00", tier: "time" },
+  { id: "flex",  name: "3-unit class — pick 1",           cat: "3+ units", cls: "flex",   reqKey: "flex", flex: true }
+];
+
+// Any ONE of these fills the 3-unit slot. `times` / `fit` only where the schedule lists them.
+const FLEX_OPTIONS = [
+  { id: "cse195",  code: "CSE 195",  short: "Research",     name: "CSE 195 — Research",             units: 3 },
+  { id: "infosys", code: "ENGR 175", short: "Info Sys",     name: "ENGR 175 — Information Systems", units: 4,
+    times: "CRN 11641 · W 11:30–1:20 · F 8:00–11:00", fit: "No overlap with EE 060 or PHYS 009 sec 01" },
+  { id: "engr156", code: "ENGR 156", short: "Tech Writing", name: "ENGR 156 — Technical Writing",   units: 3 }
 ];
 
 // Terms — order matters
@@ -419,19 +514,18 @@ const TERMS = [
 ];
 
 const REQUIREMENTS = [
-  { key: "cs",      label: "CS classes",       need: 3 },
-  { key: "eng",     label: "Engineering",      need: 2 },
-  { key: "physics", label: "PHYS 009",         need: 1 },
-  { key: "boolean", label: "EE 060 (Boolean Algebra)", need: 1 }
+  { key: "physics", label: "PHYS 009",                 need: 1 },
+  { key: "boolean", label: "EE 060",                   need: 1 },
+  { key: "flex",    label: "3-unit class",             need: 1 }
 ];
 
-// Default placement: pinned classes (PHYS 009 + ENGR 155) snap into Summer 2026,
-// everything else starts in the bank.
+// Default placement: everything starts in the bank (pinned classes, if any, snap to their term).
 function defaultPlacement() {
   const out = {};
   TERMS.forEach(t => out[t.id] = []);
   COURSES.forEach(c => {
-    if (c.pinned) out[c.pinned] = (out[c.pinned] || []).concat(c.id);
+    const home = c.fixed || c.pinned;
+    if (home) out[home] = (out[home] || []).concat(c.id);
   });
   return out;
 }
@@ -441,6 +535,21 @@ function defaultPlacement() {
 let placement = {};
 const STORAGE_KEY = "course-plan-v1";
 const VALID_TERM_IDS = new Set(TERMS.map(t => t.id).concat("bank"));
+
+// Which option is chosen for the 3-unit class ("" = not decided yet)
+const CHOICE_KEY = "course-plan-flex-choice";
+let flexChoice = "";
+try {
+  const saved = localStorage.getItem(CHOICE_KEY) || "";
+  if (FLEX_OPTIONS.some(o => o.id === saved)) flexChoice = saved;
+} catch (e) {}
+
+function setFlexChoice(id) {
+  flexChoice = (flexChoice === id) ? "" : id;  // clicking the chosen one again un-chooses it
+  try { localStorage.setItem(CHOICE_KEY, flexChoice); } catch (e) {}
+  flashSaveIndicator();
+  render();
+}
 
 function savePlacement() {
   try {
@@ -475,7 +584,7 @@ function restorePlacement() {
     const next = {};
     COURSES.forEach(c => {
       const t = parsed[c.id];
-      next[c.id] = (t && VALID_TERM_IDS.has(t)) ? t : "bank";
+      next[c.id] = c.fixed || ((t && VALID_TERM_IDS.has(t)) ? t : "bank");
     });
     placement = next;
     return true;
@@ -486,9 +595,12 @@ function restorePlacement() {
 
 function loadPlan(plan) {
   placement = {};
-  COURSES.forEach(c => placement[c.id] = "bank");
+  COURSES.forEach(c => placement[c.id] = c.fixed || "bank");
   Object.entries(plan).forEach(([termId, ids]) => {
-    ids.forEach(id => { if (placement[id] !== undefined) placement[id] = termId; });
+    ids.forEach(id => {
+      const c = COURSES.find(x => x.id === id);
+      if (c && !c.fixed) placement[id] = termId;
+    });
   });
   savePlacement();
   render();
@@ -498,6 +610,7 @@ function loadPlan(plan) {
 function canPlace(courseId, termId) {
   const c = COURSES.find(x => x.id === courseId);
   if (!c) return { ok: false, msg: "Unknown course" };
+  if (c.fixed && termId !== c.fixed) return { ok: false, msg: `${c.name} is already set` };
   if (termId === "bank") return { ok: true };
   const term = TERMS.find(t => t.id === termId);
   if (!term) return { ok: false, msg: "Unknown term" };
@@ -522,24 +635,15 @@ function el(tag, className, text) {
   return e;
 }
 
-// CS classes get specific names when assigned to Fall 2026, in placement order
-// Fall 2026 CS slots — displayed in placement order.
-// `note` shows under the class name as a small workload/difficulty hint.
-const FALL26_CS_META = [
-  { name: "CSE 107 — Digital Image Processing", note: "Easiest · least time · lab schedule may conflict", tier: "easy"        },
-  { name: "CSE 162 — Mobile Computing",         note: "Medium · might fit schedule better",               tier: "medium"      },
-  { name: "CSE 111 — Database Systems",         note: "Medium-easy · test-heavy",                         tier: "medium-easy" }
-];
-const FALL26_CS_NAMES = FALL26_CS_META.map(m => m.name);
-
+// The 3-unit class shows the chosen option's name once one is picked.
 function computeDisplayMeta() {
   const meta = {};
-  COURSES.forEach(c => meta[c.id] = { name: c.name, note: "", tier: "" });
-  const fallCS = COURSES
-    .filter(c => c.reqKey === "cs" && placement[c.id] === "fall26");
-  fallCS.forEach((c, i) => {
-    if (i < FALL26_CS_META.length) meta[c.id] = { ...FALL26_CS_META[i] };
-  });
+  COURSES.forEach(c => meta[c.id] = { name: c.name, note: c.note || "", tier: c.tier || "" });
+  const chosen = FLEX_OPTIONS.find(o => o.id === flexChoice);
+  if (chosen) {
+    meta.flex.name = chosen.name;
+    if (chosen.times) { meta.flex.note = chosen.times; meta.flex.tier = "time"; }
+  }
   return meta;
 }
 
@@ -552,11 +656,6 @@ function buildCourse(course, displayName, note, tier) {
     pin.title = "Pinned — stays here on Clear, but still draggable";
     node.appendChild(pin);
   }
-  // Dim Tech Writing / Boolean when ENGR 065 substitution is active
-  if (isSubstitutionActive() && (course.id === "techwr" || course.id === "bool")) {
-    node.classList.add("dimmed");
-    node.title = "Replaced by ENGR 065 (Circuit Theory)";
-  }
   // Wrap name + (optional) workload tag in a column so the tag sits under the name.
   const main = el("div", "course-main");
   main.appendChild(el("span", "name", displayName || course.name));
@@ -564,8 +663,29 @@ function buildCourse(course, displayName, note, tier) {
     const tag = el("span", `course-note tag-${tier || "medium"}`, note);
     main.appendChild(tag);
   }
+  // The 3-unit class lists its options right on the chip; click one to choose it.
+  if (course.flex) {
+    if (!flexChoice) node.classList.add("undecided");
+    const opts = el("div", "flex-opts");
+    FLEX_OPTIONS.forEach(o => {
+      const state = !flexChoice ? "" : (o.id === flexChoice ? " on" : " off");
+      const pill = el("span", "flex-opt" + state, o.short);
+      pill.title = o.name + " (" + o.units + " units)";
+      pill.addEventListener("click", (e) => { e.stopPropagation(); setFlexChoice(o.id); });
+      pill.addEventListener("dblclick", (e) => e.stopPropagation());  // don't send the chip back to the bank
+      opts.appendChild(pill);
+    });
+    main.appendChild(opts);
+  }
   node.appendChild(main);
   node.appendChild(el("span", "cat", course.cat));
+
+  // Already-taken classes stay put: no dragging, no double-click back to the bank.
+  if (course.fixed) {
+    node.draggable = false;
+    node.classList.add("fixed");
+    return node;
+  }
 
   node.addEventListener("dblclick", () => {
     if (placement[course.id] !== "bank") {
@@ -623,27 +743,15 @@ function attachDropHandlers(dropTarget, termId) {
 }
 
 // ---- Rendering ----
-function isSubstitutionActive() {
-  const sub = COURSES.find(c => c.substitute);
-  return sub && placement[sub.id] && placement[sub.id] !== "bank";
-}
-
 function reqCount(key) {
-  const subActive = isSubstitutionActive();
-  const placed = COURSES.filter(c =>
+  return COURSES.filter(c =>
     c.reqKey === key && placement[c.id] && placement[c.id] !== "bank"
   ).length;
-  if (!subActive) return placed;
-  // ENGR 065 substitutes for: Boolean (1) AND one Engineering slot (1)
-  if (key === "boolean") return placed + 1;
-  if (key === "eng") return placed + 1;
-  return placed;
 }
 
 function renderRequirements() {
   const box = document.getElementById("reqs");
   box.textContent = "";
-  const subActive = isSubstitutionActive();
   REQUIREMENTS.forEach(r => {
     const placed = reqCount(r.key);
     const status = placed === r.need ? "ok" : (placed < r.need ? "short" : "over");
@@ -651,13 +759,45 @@ function renderRequirements() {
     node.appendChild(el("div", "req-name", r.label));
     const countBadge = el("div", `req-count ${status}`, `${placed} / ${r.need}`);
     node.appendChild(countBadge);
-    // Annotation when ENGR 065 is filling a slot
-    if (subActive && (r.key === "boolean" || r.key === "eng")) {
-      const tag = el("div", "req-sub-tag", "via ENGR 065");
-      node.appendChild(tag);
+    // Show which option was chosen for the 3-unit class
+    if (r.key === "flex") {
+      const chosen = FLEX_OPTIONS.find(o => o.id === flexChoice);
+      node.appendChild(el("div", "req-sub-tag", chosen ? chosen.name : "option not chosen yet"));
     }
     box.appendChild(node);
   });
+}
+
+// Panel that lays out the options for the 3-unit class side by side
+function renderOptions() {
+  const grid = document.getElementById("options-grid");
+  grid.textContent = "";
+  FLEX_OPTIONS.forEach(o => {
+    const on = o.id === flexChoice;
+    const card = el("button", "option" + (on ? " on" : ""));
+    card.type = "button";
+    const top = el("div", "option-top");
+    top.appendChild(el("span", "option-code", o.code));
+    top.appendChild(el("span", "option-units", o.units + " units"));
+    card.appendChild(top);
+    card.appendChild(el("div", "option-name", o.name));
+    if (o.times) card.appendChild(el("div", "option-times", o.times));
+    if (o.fit) card.appendChild(el("div", "option-fit", "✓ " + o.fit));
+    card.appendChild(el("div", "option-pick", on ? "✓ Chosen" : "Click to choose"));
+    card.addEventListener("click", () => setFlexChoice(o.id));
+    grid.appendChild(card);
+  });
+
+  const where = document.getElementById("options-where");
+  const termId = placement.flex;
+  const term = TERMS.find(t => t.id === termId);
+  if (term) {
+    where.className = "options-where placed";
+    where.textContent = "Slot is in " + term.name;
+  } else {
+    where.className = "options-where unplaced";
+    where.textContent = "Slot not placed yet — drag it from the bank";
+  }
 }
 
 function renderTerms() {
@@ -713,13 +853,7 @@ function renderStatus() {
     if (placed < r.need) missing.push(`${r.need - placed} ${r.label}`);
     if (placed > r.need) missing.push(`-${placed - r.need} ${r.label}`);
   });
-  const subActive = isSubstitutionActive();
-  const banked = COURSES.filter(c => {
-    if (placement[c.id] !== "bank") return false;
-    if (c.substitute) return false;
-    if (subActive && (c.id === "techwr" || c.id === "bool")) return false;
-    return true;
-  });
+  const banked = COURSES.filter(c => placement[c.id] === "bank");
 
   if (missing.length === 0 && banked.length === 0) {
     pill.className = "status-pill good";
@@ -749,6 +883,7 @@ function render() {
   renderRequirements();
   renderTerms();
   renderBank();
+  renderOptions();
   renderStatus();
 }
 
